@@ -6,6 +6,7 @@ import com.example.tracking.Entity.Daily;
 import com.example.tracking.Entity.History;
 import com.example.tracking.Repository.DailyRepository;
 import com.example.tracking.Repository.HistoryRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -61,6 +62,8 @@ public class TrackingHitService {
             return new HistoryDTO(od.get());
         }
     }
+
+    @Transactional
     public void nextDay(){
         //전체 오늘의 데이터 불러오기
         List<Daily> dlist = this.dailyRepository.findAll();
