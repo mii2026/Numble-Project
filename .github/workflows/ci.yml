@@ -25,6 +25,8 @@ jobs:
     - name: get application.properties values
       run: echo "${{ secrets.APPLICATION }}" > ./_tracking/tracking/src/main/resources/application.properties
 
+    - name: make test resources directory
+      run: mkdir ./_tracking/tracking/src/test/resources
     - name: make test application.properties
       run: touch ./_tracking/tracking/src/test/resources/application.properties
     - name: get test application.properties values
