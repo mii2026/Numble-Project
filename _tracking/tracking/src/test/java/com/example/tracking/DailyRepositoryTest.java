@@ -7,6 +7,7 @@ import com.example.tracking.Repository.HistoryRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDate;
@@ -14,7 +15,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest @Sql(scripts = {"/sql/truncate.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@SpringBootTest @ActiveProfiles("test")
+@Sql(scripts = {"/sql/truncate.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class DailyRepositoryTest {
     @Autowired
     private DailyRepository dailyRepository;
@@ -37,10 +39,10 @@ public class DailyRepositoryTest {
             History h = new History(d2, LocalDate.now().minusDays(i), 10);
             this.historyRepository.save(h);
         }
-        od = this.dailyRepository.findByUrlWithHistory("https%3A%2F%2Fwww.naver.com");
+        Optional<Daily> od2 = this.dailyRepository.findByUrlWithHistory("https%3A%2F%2Fwww.naver.com");
         assertTrue(od.isPresent());
-        assertEquals(4, od.get().getHistory().size());
-        assertEquals(10, od.get().getHistory().get(2).getHit());
+        assertEquals(4, od2.get().getHistory().size());
+        assertEquals(10, od2.get().getHistory().get(2).getHit());
 
         //존재하지 않는 url
         od = this.dailyRepository.findByUrlWithHistory("https%3A%2F%2Fwww.google.com");

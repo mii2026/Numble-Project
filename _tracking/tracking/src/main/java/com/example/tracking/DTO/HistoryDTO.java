@@ -25,6 +25,10 @@ public class HistoryDTO {
             this.historyData[i] = new HistoryData(today.minusDays(i), hit);
         }
     }
+
+    public Integer getHit(Integer idx){
+        return historyData[idx].getHit();
+    }
 }
 
 @Data @Getter

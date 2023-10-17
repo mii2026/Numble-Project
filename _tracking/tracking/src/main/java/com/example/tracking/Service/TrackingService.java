@@ -8,7 +8,6 @@ import com.example.tracking.Repository.DailyRepository;
 import com.example.tracking.Repository.HistoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service @RequiredArgsConstructor
-public class TrackingHitService {
+public class TrackingService {
     private final DailyRepository dailyRepository;
     private final HistoryRepository historyRepository;
 

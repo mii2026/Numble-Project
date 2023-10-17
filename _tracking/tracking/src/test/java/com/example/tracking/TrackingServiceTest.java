@@ -6,11 +6,12 @@ import com.example.tracking.Entity.Daily;
 import com.example.tracking.Entity.History;
 import com.example.tracking.Repository.DailyRepository;
 import com.example.tracking.Repository.HistoryRepository;
-import com.example.tracking.Service.TrackingHitService;
+import com.example.tracking.Service.TrackingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDate;
@@ -19,23 +20,24 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest @Sql(scripts = "/sql/truncate.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-public class TrackingHitServiceTest {
+@SpringBootTest @ActiveProfiles("test")
+@Sql(scripts = "/sql/truncate.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+public class TrackingServiceTest {
     @Autowired
     private DailyRepository dailyRepository;
     @Autowired
     private HistoryRepository historyRepository;
-    private TrackingHitService trackingHitService;
+    private TrackingService trackingService;
 
     @BeforeEach
     public void beforeEach(){
-        this.trackingHitService = new TrackingHitService(this.dailyRepository, this.historyRepository);
+        this.trackingService = new TrackingService(this.dailyRepository, this.historyRepository);
     }
 
     @Test
     public void addHitsTest(){
         //최초 생성, 오늘 조회수와 전체 조회수 모두 1
-        this.trackingHitService.addHits("www.naver.com");
+        this.trackingService.addHits("www.naver.com");
         Optional<Daily> od = this.dailyRepository.findById(1);
         assertTrue(od.isPresent());
         assertEquals("www.naver.com", od.get().getUrl());
@@ -43,7 +45,7 @@ public class TrackingHitServiceTest {
         assertEquals(1, od.get().getTotalHit());
 
         //존재하는 url hit 증가, 오늘 조회수와 전체 조회수 1씩 증가
-        this.trackingHitService.addHits("www.naver.com");
+        this.trackingService.addHits("www.naver.com");
         Optional<Daily> od2 = this.dailyRepository.findById(1);
         assertTrue(od.isPresent());
         assertEquals("www.naver.com", od.get().getUrl());
@@ -55,12 +57,12 @@ public class TrackingHitServiceTest {
     public void getHitsTest(){
         //데이터에 존재하는 url, 가진 값 출력
         this.dailyRepository.save(new Daily("www.naver.com", 6, 10L));
-        HitsDTO hits = this.trackingHitService.getHits("www.naver.com");
+        HitsDTO hits = this.trackingService.getHits("www.naver.com");
         assertEquals(6, hits.getTodayHit());
         assertEquals(10, hits.getTotalHit());
 
         //데이터에 존재하지 않는 url, 0으로 출력
-        HitsDTO hits2 = this.trackingHitService.getHits("www.google.com");
+        HitsDTO hits2 = this.trackingService.getHits("www.google.com");
         assertEquals(0, hits2.getTodayHit());
         assertEquals(0, hits2.getTotalHit());
     }
@@ -68,9 +70,9 @@ public class TrackingHitServiceTest {
     @Test
     public void getHistoryTest(){
         //데이터에 존재하지 않는 url, 전부 0으로 나오는지 확인
-        HistoryDTO hits = this.trackingHitService.getHistory("www.google.com");
+        HistoryDTO hits = this.trackingService.getHistory("www.google.com");
         for(int i = 0; i < 7; i++)
-            System.out.println(hits.getHistoryData()[i]);
+            assertEquals(0, hits.getHit(i));
 
         //데이터에 존재하는 url, history가 없는 경우에는 0
         Daily d = new Daily("www.google.com", 6, 30L);
@@ -79,9 +81,12 @@ public class TrackingHitServiceTest {
         for(int i = 1; i < 4; i++)
             this.historyRepository.save(new History(d, today.minusDays(i), 8));
 
-        HistoryDTO hits2 = this.trackingHitService.getHistory("www.google.com");
-        for(int i = 0; i < 7; i++)
-            System.out.println(hits2.getHistoryData()[i]);
+        HistoryDTO hits2 = this.trackingService.getHistory("www.google.com");
+        assertEquals(6, hits2.getHit(0));
+        for(int i = 1; i < 4; i++)
+            assertEquals(8, hits2.getHit(i));
+        for(int i = 4; i < 7 ; i++)
+            assertEquals(0, hits2.getHit(i));
 
         //데이터에 존재하는 url, history가 7일 이상 있는 경우
         d.setTotalHit(42L);
@@ -89,9 +94,12 @@ public class TrackingHitServiceTest {
         for(int i = 4; i < 7; i++)
             this.historyRepository.save(new History(d, today.minusDays(i), 4));
 
-        HistoryDTO hits3 = this.trackingHitService.getHistory("www.google.com");
-        for(int i = 0; i < 7; i++)
-            System.out.println(hits3.getHistoryData()[i]);
+        HistoryDTO hits3 = this.trackingService.getHistory("www.google.com");
+        assertEquals(6, hits3.getHit(0));
+        for(int i = 1; i < 4; i++)
+            assertEquals(8, hits3.getHit(i));
+        for(int i = 4; i < 7 ; i++)
+            assertEquals(4, hits3.getHit(i));
     }
 
     @Test
@@ -104,7 +112,7 @@ public class TrackingHitServiceTest {
             this.historyRepository.save(new History(d, today.minusDays(i+1), 8));
 
         //다음날에 오늘 조회수 0, 히스토리 변화 확인
-        this.trackingHitService.nextDay();
+        this.trackingService.nextDay();
         Optional<Daily> od = this.dailyRepository.findByUrlWithHistory("www.google.com");
         assertTrue(od.isPresent());
         assertEquals(0, od.get().getTodayHit());
