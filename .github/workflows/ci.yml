@@ -20,13 +20,13 @@ jobs:
         java-version: '17'
         distribution: 'corretto'
 
+    - name: make resources directory
+      run: mkdir ./_tracking/tracking/src/main/resources
     - name: make application.properties
       run: touch ./_tracking/tracking/src/main/resources/application.properties
     - name: get application.properties values
       run: echo "${{ secrets.APPLICATION }}" > ./_tracking/tracking/src/main/resources/application.properties
 
-    - name: make test resources directory
-      run: mkdir ./_tracking/tracking/src/test/resources
     - name: make test application.properties
       run: touch ./_tracking/tracking/src/test/resources/application.properties
     - name: get test application.properties values
@@ -34,13 +34,12 @@ jobs:
     
     - uses: mirromutth/mysql-action@v1.1
       with:
-        mysql version: '8.0.20'
         mysql database: 'tracking_test'
         mysql root password: 'test'
 
     - name: Gradle Permission
       run: chmod +x ./_tracking/tracking/gradlew
-
+      
     - name: Build with Gradle
       uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25
       with:
