@@ -31,11 +31,11 @@ jobs:
       run: echo "${{ secrets.APPLICATION_TEST }}" > ./_tracking/tracking/src/test/resources/application.properties
 
     - uses: mirromutth/mysql-action@v1.1
-        with:
-          host port: 3306
-          container port: 3306
-          mysql database: 'tracking_test'
-          mysql root password: ${{ secrets.DB_PASSWORD }}
+      with:
+        host port: 3306
+        container port: 3306
+        mysql database: 'tracking_test'
+        mysql root password: ${{ secrets.DB_PASSWORD }}
     
     - name: Build with Gradle
       uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
