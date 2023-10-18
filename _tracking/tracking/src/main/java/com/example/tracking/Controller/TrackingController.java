@@ -51,4 +51,5 @@ public class TrackingController {
     public void nextDay(){
         this.trackingService.nextDay();
     }
+
 }

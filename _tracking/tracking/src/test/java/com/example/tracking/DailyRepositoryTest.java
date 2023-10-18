@@ -2,15 +2,19 @@ package com.example.tracking;
 
 import com.example.tracking.Entity.Daily;
 import com.example.tracking.Entity.History;
+import com.example.tracking.Repository.DailyBulkRepository;
 import com.example.tracking.Repository.DailyRepository;
 import com.example.tracking.Repository.HistoryRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DailyRepositoryTest {
     @Autowired
     private DailyRepository dailyRepository;
+    @Autowired
+    private DailyBulkRepository dailyBulkRepository;
     @Autowired
     private HistoryRepository historyRepository;
 
@@ -47,5 +53,22 @@ public class DailyRepositoryTest {
         //존재하지 않는 url
         od = this.dailyRepository.findByUrlWithHistory("https%3A%2F%2Fwww.google.com");
         assertFalse(od.isPresent());
+    }
+
+    @Test
+    public void findAllByTest(){
+        //데이터 저장
+        List<Daily> dlist = new ArrayList<>();
+        for(int i = 0; i < 100; i++) {
+            dlist.add(new Daily("www." + i +".com", 1, 1L));
+        }
+        this.dailyBulkRepository.saveAll(dlist);
+
+        //페이징으로 불러오기
+        List<Daily> dlist2 = this.dailyRepository.findAllBy(PageRequest.of(0, 10));
+
+        //길이 및 값 확인
+        assertEquals(10, dlist2.size());
+        assertEquals("www.0.com", dlist2.get(0).getUrl());
     }
 }
