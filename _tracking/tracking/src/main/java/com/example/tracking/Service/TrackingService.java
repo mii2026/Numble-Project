@@ -4,10 +4,13 @@ import com.example.tracking.DTO.HistoryDTO;
 import com.example.tracking.DTO.HitsDTO;
 import com.example.tracking.Entity.Daily;
 import com.example.tracking.Entity.History;
+import com.example.tracking.Repository.DailyBulkRepository;
 import com.example.tracking.Repository.DailyRepository;
+import com.example.tracking.Repository.HistoryBulkRepository;
 import com.example.tracking.Repository.HistoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,6 +22,8 @@ import java.util.Optional;
 public class TrackingService {
     private final DailyRepository dailyRepository;
     private final HistoryRepository historyRepository;
+    private final DailyBulkRepository dailyBulkRepository;
+    private final HistoryBulkRepository historyBulkRepository;
 
     public void addHits(String url){
         //url 데이터 불러오기
@@ -64,18 +69,25 @@ public class TrackingService {
 
     @Transactional
     public void nextDay(){
-        //전체 오늘의 데이터 불러오기
-        List<Daily> dlist = this.dailyRepository.findAll();
+        int i = 0;
+        while(true) {
+            //전체 오늘의 데이터 불러오기
+            List<Daily> dlist = this.dailyRepository.findAllBy(PageRequest.of(i, 10000));
+            if(dlist.size()==0)
+                break;
 
-        //오늘의 데이터를 바탕으로 히스토리 데이터 생성, 오늘 데이터의 오늘 조회수를 0으로 변경
-        List<History> hlist = new ArrayList<>();
-        for(Daily d: dlist){
-            hlist.add(new History(d, LocalDate.now().minusDays(1), d.getTodayHit()));
-            d.setTodayHit(0);
+            //오늘의 데이터를 바탕으로 히스토리 데이터 생성, 오늘 데이터의 오늘 조회수를 0으로 변경
+            List<History> hlist = new ArrayList<>();
+            for (Daily d : dlist) {
+                hlist.add(new History(d, LocalDate.now().minusDays(1), d.getTodayHit()));
+                d.setTodayHit(0);
+            }
+
+            //생성한 히스토리와 변경한 오늘의 데이터 저장
+            this.historyBulkRepository.saveAll(hlist);
+            this.dailyBulkRepository.updateAll(dlist);
+
+            i++;
         }
-
-        //생성한 히스토리와 변경한 오늘의 데이터 저장
-        this.historyRepository.saveAll(hlist);
-        this.dailyRepository.saveAll(dlist);
     }
 }

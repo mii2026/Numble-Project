@@ -4,7 +4,9 @@ import com.example.tracking.DTO.HistoryDTO;
 import com.example.tracking.DTO.HitsDTO;
 import com.example.tracking.Entity.Daily;
 import com.example.tracking.Entity.History;
+import com.example.tracking.Repository.DailyBulkRepository;
 import com.example.tracking.Repository.DailyRepository;
+import com.example.tracking.Repository.HistoryBulkRepository;
 import com.example.tracking.Repository.HistoryRepository;
 import com.example.tracking.Service.TrackingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +17,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,11 +31,16 @@ public class TrackingServiceTest {
     private DailyRepository dailyRepository;
     @Autowired
     private HistoryRepository historyRepository;
+    @Autowired
+    private DailyBulkRepository dailyBulkRepository;
+    @Autowired
+    private HistoryBulkRepository historyBulkRepository;
     private TrackingService trackingService;
 
     @BeforeEach
     public void beforeEach(){
-        this.trackingService = new TrackingService(this.dailyRepository, this.historyRepository);
+        this.trackingService = new TrackingService(this.dailyRepository, this.historyRepository,
+                                                    this.dailyBulkRepository, this.historyBulkRepository);
     }
 
     @Test
@@ -118,5 +127,20 @@ public class TrackingServiceTest {
         assertEquals(0, od.get().getTodayHit());
         assertEquals(3, od.get().getHistory().size());
         assertEquals(6, od.get().getHistory().get(2).getHit());
+    }
+
+    public void nextDayTestWithLargeData(){
+        //데이터 저장
+        List<Daily> dailyList = new ArrayList<>();
+        for(int i = 0; i < 10000; i++) {
+            dailyList.add(new Daily("www." + i +".com", 1, 1L));
+        }
+        dailyBulkRepository.saveAll(dailyList);
+
+        //실행 시간 출력
+        long start = System.currentTimeMillis();
+        this.trackingService.nextDay();
+        long end = System.currentTimeMillis();
+        System.out.println((double)(end-start)/1000 + "seconds");
     }
 }
