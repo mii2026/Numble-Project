@@ -7,7 +7,6 @@ import com.example.tracking.Entity.History;
 import com.example.tracking.Repository.DailyBulkRepository;
 import com.example.tracking.Repository.DailyRepository;
 import com.example.tracking.Repository.HistoryBulkRepository;
-import com.example.tracking.Repository.HistoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -21,10 +20,10 @@ import java.util.Optional;
 @Service @RequiredArgsConstructor
 public class TrackingService {
     private final DailyRepository dailyRepository;
-    private final HistoryRepository historyRepository;
     private final DailyBulkRepository dailyBulkRepository;
     private final HistoryBulkRepository historyBulkRepository;
 
+    @Transactional
     public void addHits(String url){
         //url 데이터 불러오기
         Optional<Daily> od = this.dailyRepository.findByUrl(url);

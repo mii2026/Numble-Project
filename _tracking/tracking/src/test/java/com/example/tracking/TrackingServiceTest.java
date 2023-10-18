@@ -20,6 +20,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,8 +42,7 @@ public class TrackingServiceTest {
 
     @BeforeEach
     public void beforeEach(){
-        this.trackingService = new TrackingService(this.dailyRepository, this.historyRepository,
-                                                    this.dailyBulkRepository, this.historyBulkRepository);
+        this.trackingService = new TrackingService(this.dailyRepository, this.dailyBulkRepository, this.historyBulkRepository);
     }
 
     @Test
