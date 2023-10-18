@@ -71,8 +71,10 @@ public class TrackingService {
     public void nextDay(){
         int i = 0;
         while(true) {
-            //전체 오늘의 데이터 불러오기
+            //쪼개진 오늘의 데이터 불러오기
             List<Daily> dlist = this.dailyRepository.findAllBy(PageRequest.of(i, 10000));
+
+            //페이지가 비었으면 모두 확인한 것으로 종료
             if(dlist.size()==0)
                 break;
 
@@ -87,6 +89,7 @@ public class TrackingService {
             this.historyBulkRepository.saveAll(hlist);
             this.dailyBulkRepository.updateAll(dlist);
 
+            //페이지 인덱스 증가
             i++;
         }
     }
