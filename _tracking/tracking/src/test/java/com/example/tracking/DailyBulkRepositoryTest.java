@@ -26,36 +26,36 @@ public class DailyBulkRepositoryTest {
     @Test
     public void bulkInsertTest(){
         //데이터 저장
-        List<Daily> dlist = new ArrayList<>();
+        List<Daily> dailyList = new ArrayList<>();
         for(int i = 0; i < 100; i++) {
-            dlist.add(new Daily("www." + i +".com", 1, 1L));
+            dailyList.add(new Daily("www." + i +".com", 1, 1L));
         }
-        this.dailyBulkRepository.saveAll(dlist);
+        this.dailyBulkRepository.saveAll(dailyList);
 
         //개수 및 값 확인
-        List<Daily> dlist2 = this.dailyRepository.findAll();
-        assertEquals(100, dlist2.size());
-        assertEquals(1, dlist2.get(0).getTodayHit());
+        List<Daily> dailyList2 = this.dailyRepository.findAll();
+        assertEquals(100, dailyList2.size());
+        assertEquals(1, dailyList2.get(0).getTodayHit());
     }
 
     @Test
     public void bulkUpdateTest(){
         //데이터 저장
-        List<Daily> dlist = new ArrayList<>();
+        List<Daily> dailyList = new ArrayList<>();
         for(int i = 0; i < 100; i++) {
-            dlist.add(new Daily("www." + i +".com", 1, 1L));
+            dailyList.add(new Daily("www." + i +".com", 1, 1L));
         }
-        this.dailyBulkRepository.saveAll(dlist);
+        this.dailyBulkRepository.saveAll(dailyList);
 
         //데이터 값 업데이트
-        List<Daily> dlist2 = this.dailyRepository.findAll();
-        for(Daily d: dlist2)
-            d.setTodayHit(0);
-        this.dailyBulkRepository.updateAll(dlist2);
+        List<Daily> dailyList2 = this.dailyRepository.findAll();
+        for(Daily daily: dailyList2)
+            daily.setTodayHit(0);
+        this.dailyBulkRepository.updateAll(dailyList2);
 
         //개수 및 값 확인
-        List<Daily> dlist3 = this.dailyRepository.findAll();
-        assertEquals(100, dlist3.size());
-        assertEquals(0, dlist3.get(0).getTodayHit());
+        List<Daily> dailyList3 = this.dailyRepository.findAll();
+        assertEquals(100, dailyList3.size());
+        assertEquals(0, dailyList3.get(0).getTodayHit());
     }
 }

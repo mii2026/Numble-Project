@@ -34,24 +34,24 @@ public class HistoryBulkRepositoryTest {
     @Test
     public void bulkInsertTest(){
         //데일리 데이터 저장
-        List<Daily> dlist = new ArrayList<>();
+        List<Daily> dailyList1 = new ArrayList<>();
         for(int i = 0; i < 100; i++) {
-            dlist.add(new Daily("www." + i +".com", 1, 2L));
+            dailyList1.add(new Daily("www." + i +".com", 1, 2L));
         }
-        this.dailyBulkRepository.saveAll(dlist);
+        this.dailyBulkRepository.saveAll(dailyList1);
 
         //저장된 데일리 데이터 불러오기
-        List<Daily> dlist2 = this.dailyRepository.findAll();
+        List<Daily> dailyList2 = this.dailyRepository.findAll();
 
         //데일리 데이터마다 하나의 히스토리 데이터 생성 및 저장
-        List<History> hlist = new ArrayList<>();
-        for(Daily d: dlist2)
-            hlist.add(new History(d, LocalDate.now(), 1));
-        this.historyBulkRepository.saveAll(hlist);
+        List<History> historyList1 = new ArrayList<>();
+        for(Daily daily: dailyList2)
+            historyList1.add(new History(daily, LocalDate.now(), 1));
+        this.historyBulkRepository.saveAll(historyList1);
 
         //히스토리 데이터 개수 및 값 확인
-        List<History> hlist2 = this.historyRepository.findAll();
-        assertEquals(100, hlist2.size());
-        assertEquals(1, hlist2.get(0).getHit());
+        List<History> historyList2 = this.historyRepository.findAll();
+        assertEquals(100, historyList2.size());
+        assertEquals(1, historyList2.get(0).getHit());
     }
 }
