@@ -59,10 +59,9 @@ public class TrackingService {
         if(optionalDaily.isEmpty()){
             //데이터가 없는 경우 조회수와 히스토리 모두 0 출력
             return new HistoryDTO(new Daily(url, 0, 0L));
-        }else{
-            //데이터가 있는 경우 데이터 출력
-            return new HistoryDTO(optionalDaily.get());
         }
+        //데이터가 있는 경우 데이터 출력
+        return new HistoryDTO(optionalDaily.get());
     }
 
     @Transactional
