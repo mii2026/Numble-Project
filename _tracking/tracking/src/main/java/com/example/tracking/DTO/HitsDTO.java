@@ -8,8 +8,8 @@ public class HitsDTO {
     private Integer todayHit;
     private Long totalHit;
 
-    public HitsDTO(Daily d){
-        this.todayHit = d.getTodayHit();
-        this.totalHit = d.getTotalHit();
+    public HitsDTO(Daily daily){
+        this.todayHit = daily.getTodayHit();
+        this.totalHit = daily.getTotalHit();
     }
 }
