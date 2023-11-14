@@ -66,9 +66,9 @@ public class TrackingService {
 
     @Transactional
     public void updateTodayHitsToHistroy(){
-        int i = 0;
-        while(true) {
-            //쪼개진 오늘의 데이터 불러오기
+        // 10000개씩 100번 가져오고 아직 남았다면 로그로 프린트처리
+        for(int i = 0; i < 100; i++) {
+            //오늘의 조회수 데이터 10000개씩 불러오기
             List<Daily> dailyList = this.dailyRepository.findAllBy(PageRequest.of(i, 10000));
 
             //페이지가 비었으면 모두 확인한 것으로 종료
@@ -85,9 +85,6 @@ public class TrackingService {
             //생성한 히스토리와 변경한 오늘의 데이터 저장
             this.historyBulkRepository.saveAll(historyList);
             this.dailyBulkRepository.updateAll(dailyList);
-
-            //페이지 인덱스 증가
-            i++;
         }
     }
 }
