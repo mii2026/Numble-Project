@@ -13,15 +13,15 @@ import java.util.List;
 public class HistoryDTO {
     private HistoryData[] historyData = new HistoryData[7];
 
-    public HistoryDTO(Daily d){
-        List<History> hlist = d.getHistory();
-        Collections.sort(hlist, (x,y)->y.getDate().compareTo(x.getDate()));
+    public HistoryDTO(Daily daily){
+        List<History> historyList = daily.getHistory();
+        Collections.sort(historyList, (x,y)->y.getDate().compareTo(x.getDate()));
         LocalDate today = LocalDate.now();
-        this.historyData[0] = new HistoryData(today, d.getTodayHit());
+        this.historyData[0] = new HistoryData(today, daily.getTodayHit());
         for(int i = 1; i <= 6; i++){
             Integer hit = 0;
-            if(hlist.size()>=i)
-                hit = hlist.get(i-1).getHit();
+            if(historyList.size()>=i)
+                hit = historyList.get(i-1).getHit();
             this.historyData[i] = new HistoryData(today.minusDays(i), hit);
         }
     }

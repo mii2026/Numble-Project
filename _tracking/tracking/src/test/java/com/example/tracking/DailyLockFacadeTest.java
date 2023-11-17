@@ -48,18 +48,18 @@ public class DailyLockFacadeTest {
     @Test
     public void addHitsTestWithLargeTraffic() throws InterruptedException {
         //thread 생성
-        ExecutorService service = Executors.newFixedThreadPool(10);
-        CountDownLatch latch = new CountDownLatch(10);
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        CountDownLatch countDownLatch = new CountDownLatch(10);
 
         //조회수 증가 테스트
         this.dailyRepository.save(new Daily("www.google.com", 1, 1L));
         for(int i = 0; i < 10; i++){
-            service.execute(()->{
+            executorService.execute(()->{
                 this.dailyLockFacade.addHits("www.google.com");
-                latch.countDown();
+                countDownLatch.countDown();
             });
         }
-        latch.await();
+        countDownLatch.await();
         assertEquals(11, this.dailyRepository.findByUrl("www.google.com").get().getTodayHit());
     }
 }

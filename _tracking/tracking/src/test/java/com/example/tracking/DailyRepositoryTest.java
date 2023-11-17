@@ -32,43 +32,43 @@ public class DailyRepositoryTest {
     @Test
     public void findByUrlWithHistoryTest(){
         //history 없는 경우
-        Daily d1 = new Daily("https%3A%2F%2Fgithub.com", 1, 1L);
-        this.dailyRepository.save(d1);
-        Optional<Daily> od = this.dailyRepository.findByUrlWithHistory("https%3A%2F%2Fgithub.com");
-        assertTrue(od.isPresent());
-        assertEquals(0, od.get().getHistory().size());
+        Daily daily1 = new Daily("https%3A%2F%2Fgithub.com", 1, 1L);
+        this.dailyRepository.save(daily1);
+        Optional<Daily> optionalDaily1 = this.dailyRepository.findByUrlWithHistory("https%3A%2F%2Fgithub.com");
+        assertTrue(optionalDaily1.isPresent());
+        assertEquals(0, optionalDaily1.get().getHistory().size());
 
         //history 있는 경우
-        Daily d2 = new Daily("https%3A%2F%2Fwww.naver.com", 10, 50L);
-        this.dailyRepository.save(d2);
+        Daily daily2 = new Daily("https%3A%2F%2Fwww.naver.com", 10, 50L);
+        this.dailyRepository.save(daily2);
         for(int i = 1; i <= 4; i++){
-            History h = new History(d2, LocalDate.now().minusDays(i), 10);
-            this.historyRepository.save(h);
+            History history = new History(daily2, LocalDate.now().minusDays(i), 10);
+            this.historyRepository.save(history);
         }
-        Optional<Daily> od2 = this.dailyRepository.findByUrlWithHistory("https%3A%2F%2Fwww.naver.com");
-        assertTrue(od.isPresent());
-        assertEquals(4, od2.get().getHistory().size());
-        assertEquals(10, od2.get().getHistory().get(2).getHit());
+        Optional<Daily> optionalDaily2 = this.dailyRepository.findByUrlWithHistory("https%3A%2F%2Fwww.naver.com");
+        assertTrue(optionalDaily1.isPresent());
+        assertEquals(4, optionalDaily2.get().getHistory().size());
+        assertEquals(10, optionalDaily2.get().getHistory().get(2).getHit());
 
         //존재하지 않는 url
-        od = this.dailyRepository.findByUrlWithHistory("https%3A%2F%2Fwww.google.com");
-        assertFalse(od.isPresent());
+        Optional<Daily> optionalDaily3 = this.dailyRepository.findByUrlWithHistory("https%3A%2F%2Fwww.google.com");
+        assertFalse(optionalDaily3.isPresent());
     }
 
     @Test
     public void findAllByTest(){
         //데이터 저장
-        List<Daily> dlist = new ArrayList<>();
+        List<Daily> dailyList = new ArrayList<>();
         for(int i = 0; i < 100; i++) {
-            dlist.add(new Daily("www." + i +".com", 1, 1L));
+            dailyList.add(new Daily("www." + i +".com", 1, 1L));
         }
-        this.dailyBulkRepository.saveAll(dlist);
+        this.dailyBulkRepository.saveAll(dailyList);
 
         //페이징으로 불러오기
-        List<Daily> dlist2 = this.dailyRepository.findAllBy(PageRequest.of(0, 10));
+        List<Daily> dailyList2 = this.dailyRepository.findAllBy(PageRequest.of(0, 10));
 
         //길이 및 값 확인
-        assertEquals(10, dlist2.size());
-        assertEquals("www.0.com", dlist2.get(0).getUrl());
+        assertEquals(10, dailyList2.size());
+        assertEquals("www.0.com", dailyList2.get(0).getUrl());
     }
 }

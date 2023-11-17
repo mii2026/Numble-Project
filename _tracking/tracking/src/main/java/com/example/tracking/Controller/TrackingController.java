@@ -51,7 +51,7 @@ public class TrackingController {
 
     @Scheduled(cron = "0 0 0 * * *")
     public void nextDay(){
-        this.trackingService.nextDay();
+        this.trackingService.updateTodayHitsToHistroy();
     }
 
 }
