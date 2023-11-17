@@ -9,6 +9,7 @@ import com.example.tracking.Repository.DailyRepository;
 import com.example.tracking.Repository.HistoryBulkRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@Service @RequiredArgsConstructor
+@Service @RequiredArgsConstructor @Slf4j
 public class TrackingService {
     private final DailyRepository dailyRepository;
     private final DailyBulkRepository dailyBulkRepository;
@@ -86,5 +87,7 @@ public class TrackingService {
             this.historyBulkRepository.saveAll(historyList);
             this.dailyBulkRepository.updateAll(dailyList);
         }
+        if(this.dailyRepository.findAllBy(PageRequest.of(0, 10000)).size()!=0)
+            log.warn("Warning at updateTodayHitsToHistroy():Increase limit of page!");
     }
 }
