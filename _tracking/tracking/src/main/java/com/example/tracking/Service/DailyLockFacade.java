@@ -1,13 +1,14 @@
 package com.example.tracking.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
-@Service @RequiredArgsConstructor
+@Service @RequiredArgsConstructor @Slf4j
 public class DailyLockFacade {
     private final TrackingService trackingService;
     private final RedissonClient redissonClient;
@@ -17,7 +18,7 @@ public class DailyLockFacade {
         try{
             boolean available = rLock.tryLock(10, 1, TimeUnit.SECONDS);
             if(!available){
-                System.out.println("getLock timeout");
+                log.error("getLock timeout");
                 throw new IllegalArgumentException();
             }
             trackingService.addHits(url);
