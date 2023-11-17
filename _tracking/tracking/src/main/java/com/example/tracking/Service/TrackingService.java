@@ -87,7 +87,7 @@ public class TrackingService {
             this.historyBulkRepository.saveAll(historyList);
             this.dailyBulkRepository.updateAll(dailyList);
         }
-        if(this.dailyRepository.findAllBy(PageRequest.of(0, 10000)).size()!=0)
+        if(this.dailyRepository.findAllBy(PageRequest.of(100, 10000)).size()!=0)
             log.warn("Warning at updateTodayHitsToHistroy():Increase limit of page!");
     }
 }
