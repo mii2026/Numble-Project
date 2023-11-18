@@ -11,6 +11,7 @@ import java.util.List;
 public class Daily {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer urlId;
+    @Column(unique = true)
     private String url;
     private Integer todayHit;
     private Long totalHit;

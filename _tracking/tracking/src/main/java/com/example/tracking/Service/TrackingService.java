@@ -28,19 +28,13 @@ public class TrackingService {
     public void addHits(String url){
         //url 데이터 불러오기
         Optional<Daily> optionalDaily = this.dailyRepository.findByUrl(url);
-
-        Daily daily;
         if(optionalDaily.isEmpty()){
             //데이터가 없는 경우 생성
-            daily = new Daily(url, 1, 1L);
-        }else{
-            //데이터가 있는 경우 1씩 증가
-            daily = optionalDaily.get();
-            daily.setTodayHit(daily.getTodayHit()+1);
-            daily.setTotalHit(daily.getTotalHit()+1);
+            this.dailyRepository.upsertHits(url);
+        }else {
+            //데이터가 있는 경우 오늘의 조회수와 총 조회수 1 증가하는 쿼리
+            this.dailyRepository.updateHits(url);
         }
-        //데이터 저장
-        this.dailyRepository.save(daily);
     }
 
     public HitsDTO getHits(String url){

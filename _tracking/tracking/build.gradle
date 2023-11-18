@@ -24,7 +24,6 @@ dependencies {
 	testImplementation 'org.projectlombok:lombok:1.18.28'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-	implementation 'org.redisson:redisson-spring-boot-starter:3.22.1'
 }
 
 tasks.named('test') {
