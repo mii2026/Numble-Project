@@ -10,9 +10,9 @@
 다음 4 가지의 기능을 제공합니다.   
 |기능|전송|반환|
 |---|:---:|---|
-|url 조회수 증가|PUT http://{domain}/hit?url={url}|![](image\addHits_result.PNG)|
-|url 조회수 조회|GET http://{domain}/hit?url={url}|![](image\getHits_result.PNG)|
-|url 히스토리 조회|GET http://{domain}/history?url={url}|![](image\getHistory_result.PNG)|
+|url 조회수 증가|PUT http://{domain}/hit?url={url}|![](image/addHits_result.PNG)|
+|url 조회수 조회|GET http://{domain}/hit?url={url}|![](image/getHits_result.PNG)|
+|url 히스토리 조회|GET http://{domain}/history?url={url}|![](image/getHistory_result.PNG)|
 |오늘 조회수 업데이트| 자정마다 실행| 자정마다 현재 오늘의 조회수를 히스토리에 저장하고 오늘의 조회수를 0으로 변경|
 
 ## 개발기간
@@ -32,7 +32,7 @@ Github Actions를 이용하여 main branch에 pull request가 들어오면 프�
 ## 프로젝트 구성도
 | ERD |
 | :---: |
-|![](image\erd.PNG)|
+|![](image/erd.PNG)|
 
 
 ## 고려사항 및 회고록
