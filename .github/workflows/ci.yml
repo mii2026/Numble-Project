@@ -34,8 +34,8 @@ jobs:
     
     - uses: mirromutth/mysql-action@v1.1
       with:
-        mysql database: 'tracking_test'
-        mysql root password: 'test'
+        mysql database: 'tracking'
+        mysql root password: ${{ secrets.MYSQL_PW }}
 
     - name: Gradle Permission
       run: chmod +x ./_tracking/tracking/gradlew
