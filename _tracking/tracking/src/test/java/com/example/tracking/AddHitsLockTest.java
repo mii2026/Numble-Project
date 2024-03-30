@@ -5,7 +5,7 @@ import com.example.tracking.Repository.DailyBulkRepository;
 import com.example.tracking.Repository.DailyRepository;
 import com.example.tracking.Repository.HistoryBulkRepository;
 import com.example.tracking.Repository.HistoryRepository;
-import com.example.tracking.Service.DailyLockFacade;
+import com.example.tracking.Service.AddHitsLock;
 import com.example.tracking.Service.TrackingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest
 @ActiveProfiles("test")
 @Sql(scripts = "/truncate.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-public class DailyLockFacadeTest {
+public class AddHitsLockTest {
     @Autowired
     private DailyRepository dailyRepository;
     @Autowired
@@ -36,13 +36,13 @@ public class DailyLockFacadeTest {
     @Autowired
     private RedissonClient redissonClient;
     private TrackingService trackingService;
-    private DailyLockFacade dailyLockFacade;
+    private AddHitsLock addHitsLock;
 
 
     @BeforeEach
     public void beforeEach(){
         this.trackingService = new TrackingService(this.dailyRepository, this.dailyBulkRepository, this.historyBulkRepository);
-        this.dailyLockFacade = new DailyLockFacade(this.trackingService, this.redissonClient);
+        this.addHitsLock = new AddHitsLock(this.trackingService, this.redissonClient);
     }
 
     @Test
@@ -55,7 +55,7 @@ public class DailyLockFacadeTest {
         this.dailyRepository.save(new Daily("www.google.com", 1, 1L));
         for(int i = 0; i < 10; i++){
             service.execute(()->{
-                this.dailyLockFacade.addHits("www.google.com");
+                this.addHitsLock.addHits("www.google.com");
                 latch.countDown();
             });
         }
