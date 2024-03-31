@@ -2,7 +2,6 @@ package com.example.tracking;
 
 import com.example.tracking.Entity.Daily;
 import com.example.tracking.Entity.History;
-import com.example.tracking.Repository.DailyBulkRepository;
 import com.example.tracking.Repository.DailyRepository;
 import com.example.tracking.Repository.HistoryBulkRepository;
 import com.example.tracking.Repository.HistoryRepository;
@@ -27,8 +26,6 @@ public class HistoryBulkRepositoryTest {
     @Autowired
     private HistoryRepository historyRepository;
     @Autowired
-    private DailyBulkRepository dailyBulkRepository;
-    @Autowired
     private HistoryBulkRepository historyBulkRepository;
 
     @Test
@@ -36,9 +33,9 @@ public class HistoryBulkRepositoryTest {
         //데일리 데이터 저장
         List<Daily> dailyList1 = new ArrayList<>();
         for(int i = 0; i < 100; i++) {
-            dailyList1.add(new Daily("www." + i +".com", 1, 2L));
+            dailyList1.add(new Daily("www." + i +".com"));
         }
-        this.dailyBulkRepository.saveAll(dailyList1);
+        this.dailyRepository.saveAll(dailyList1);
 
         //저장된 데일리 데이터 불러오기
         List<Daily> dailyList2 = this.dailyRepository.findAll();
@@ -46,7 +43,7 @@ public class HistoryBulkRepositoryTest {
         //데일리 데이터마다 하나의 히스토리 데이터 생성 및 저장
         List<History> historyList1 = new ArrayList<>();
         for(Daily daily: dailyList2)
-            historyList1.add(new History(daily, LocalDate.now(), 1));
+            historyList1.add(new History(daily, LocalDate.now(), 1L));
         this.historyBulkRepository.saveAll(historyList1);
 
         //히스토리 데이터 개수 및 값 확인
