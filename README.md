@@ -70,9 +70,9 @@ Github Actions를 이용하여 main branch에 pull request가 들어오면 프�
         
      |변경 전|
      |---|
-     |<img src="image/result1.PNG" width=800>|
+     |<img src="image/result1.png" width=800>|
      |변경 후|
-     |<img src="image/result2.PNG" width=800>|
+     |<img src="image/result2.png" width=800>|
 
 
 ## 회고록
