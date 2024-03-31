@@ -2,6 +2,7 @@ package com.example.tracking.DTO;
 
 import com.example.tracking.Entity.Daily;
 import com.example.tracking.Entity.History;
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 
@@ -13,20 +14,21 @@ import java.util.List;
 public class HistoryDTO {
     private HistoryData[] historyData = new HistoryData[7];
 
-    public HistoryDTO(Daily daily){
-        List<History> historyList = daily.getHistory();
-        Collections.sort(historyList, (x,y)->y.getDate().compareTo(x.getDate()));
+    @Builder
+    public HistoryDTO(Long todayHit, List<History> historyList){
         LocalDate today = LocalDate.now();
-        this.historyData[0] = new HistoryData(today, daily.getTodayHit());
+        this.historyData[0] = new HistoryData(today, todayHit);
+
+        Collections.sort(historyList, (x,y)->y.getDate().compareTo(x.getDate()));
         for(int i = 1; i <= 6; i++){
-            Integer hit = 0;
+            Long hit = 0L;
             if(historyList.size()>=i)
                 hit = historyList.get(i-1).getHit();
             this.historyData[i] = new HistoryData(today.minusDays(i), hit);
         }
     }
 
-    public Integer getHit(Integer idx){
+    public Long getHit(Integer idx){
         return historyData[idx].getHit();
     }
 }
@@ -34,9 +36,9 @@ public class HistoryDTO {
 @Data @Getter
 class HistoryData{
     private LocalDate date;
-    private Integer hit;
+    private Long hit;
 
-    public HistoryData(LocalDate date, Integer hit){
+    public HistoryData(LocalDate date, Long hit){
         this.date = date;
         this.hit = hit;
     }

@@ -4,82 +4,84 @@ import com.example.tracking.DTO.HistoryDTO;
 import com.example.tracking.DTO.HitsDTO;
 import com.example.tracking.Entity.Daily;
 import com.example.tracking.Entity.History;
-import com.example.tracking.Repository.DailyBulkRepository;
 import com.example.tracking.Repository.DailyRepository;
 import com.example.tracking.Repository.HistoryBulkRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service @RequiredArgsConstructor @Slf4j
 public class TrackingService {
     private final DailyRepository dailyRepository;
-    private final DailyBulkRepository dailyBulkRepository;
     private final HistoryBulkRepository historyBulkRepository;
+    private final StringRedisTemplate redisTemplate;
 
-    @Transactional
     public void addHits(String url){
-        //url 데이터 불러오기
-        Optional<Daily> optionalDaily = this.dailyRepository.findByUrl(url);
-        if(optionalDaily.isEmpty()){
-            //데이터가 없는 경우 생성
-            this.dailyRepository.upsertHits(url);
-        }else {
-            //데이터가 있는 경우 오늘의 조회수와 총 조회수 1 증가하는 쿼리
-            this.dailyRepository.updateHits(url);
+        redisTemplate.opsForValue().increment("url:"+url+":todayHit");
+        Long totalHit = redisTemplate.opsForValue().increment("url:"+url+":totalHit");
+        if(totalHit == 1L){
+            dailyRepository.save(new Daily(url));
         }
     }
 
     public HitsDTO getHits(String url){
-        //데이터 불러오기
-        Optional<Daily> optionalDaily = this.dailyRepository.findByUrl(url);
-        if(optionalDaily.isEmpty()) {
-            //데이터가 없는 경우 조회수는 모두 0
-            return new HitsDTO(new Daily(url, 0, 0L));
-        }
-        //데이터가 있는 경우 조회수 반환
-        return new HitsDTO(optionalDaily.get());
+
+        String todayHit = redisTemplate.opsForValue().get("url:"+url+":todayHit");
+        String totalHit = redisTemplate.opsForValue().get("url:"+url+":totalHit");
+
+        return HitsDTO.builder()
+                .todayHit(todayHit == null ? 0L : Long.valueOf(todayHit))
+                .totalHit(totalHit == null ? 0L : Long.valueOf(totalHit))
+                .build();
     }
 
     public HistoryDTO getHistory(String url){
-        //데이터를 히스토리와 함께 불러오기
-        Optional<Daily> optionalDaily = this.dailyRepository.findByUrlWithHistory(url);
-        if(optionalDaily.isEmpty()){
-            //데이터가 없는 경우 조회수와 히스토리 모두 0 출력
-            return new HistoryDTO(new Daily(url, 0, 0L));
-        }
-        //데이터가 있는 경우 데이터 출력
-        return new HistoryDTO(optionalDaily.get());
+
+        String todayHit = redisTemplate.opsForValue().get("url:"+url+":todayHit");
+        Optional<Daily> daily = dailyRepository.findByUrlWithHistory(url);
+
+        return HistoryDTO.builder()
+                .todayHit(todayHit==null ? 0L : Long.valueOf(todayHit))
+                .historyList(daily.isEmpty() ? new ArrayList<History>() : daily.get().getHistory())
+                .build();
     }
 
     @Transactional
     public void updateTodayHitsToHistroy(){
-        // 10000개씩 100번 가져오고 아직 남았다면 로그로 프린트처리
         for(int i = 0; i < 100; i++) {
-            //오늘의 조회수 데이터 10000개씩 불러오기
             List<Daily> dailyList = this.dailyRepository.findAllBy(PageRequest.of(i, 10000));
 
-            //페이지가 비었으면 모두 확인한 것으로 종료
             if(dailyList.size()==0)
                 break;
 
-            //오늘의 데이터를 바탕으로 히스토리 데이터 생성, 오늘 데이터의 오늘 조회수를 0으로 변경
+            List<String> keys = new ArrayList<>();
+            Map<String, String> todayHitUpdateList = new HashMap<>();
+            for(Daily d: dailyList){
+                keys.add("url:"+d.getUrl()+":todayHit");
+                todayHitUpdateList.put("url:"+d.getUrl()+":todayHit", "0");
+            }
+            List<String> values = redisTemplate.opsForValue().multiGet(keys);
+
             List<History> historyList = new ArrayList<>();
-            for (Daily d : dailyList) {
-                historyList.add(new History(d, LocalDate.now().minusDays(1), d.getTodayHit()));
-                d.setTodayHit(0);
+            for (int j = 0; j < dailyList.size(); j++) {
+                String todayHit = values.get(j)==null ? "0" : values.get(i);
+                historyList.add(
+                        new History(
+                                dailyList.get(i),
+                                LocalDate.now().minusDays(1),
+                                Long.valueOf(todayHit)
+                        )
+                );
             }
 
-            //생성한 히스토리와 변경한 오늘의 데이터 저장
             this.historyBulkRepository.saveAll(historyList);
-            this.dailyBulkRepository.updateAll(dailyList);
+            redisTemplate.opsForValue().multiSet(todayHitUpdateList);
         }
         if(this.dailyRepository.findAllBy(PageRequest.of(100, 10000)).size()!=0)
             log.warn("Warning at updateTodayHitsToHistroy():Increase limit of page!");
