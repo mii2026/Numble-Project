@@ -1,9 +1,11 @@
 package com.example.tracking;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
@@ -12,12 +14,21 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@AutoConfigureMockMvc @SpringBootTest @ActiveProfiles("test")
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Sql(scripts = "/truncate.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 public class TrackingControllerTest {
 
     @Autowired
     private MockMvc mvc;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @BeforeEach
+    public void beforeEach(){
+        redisTemplate.getConnectionFactory().getConnection().flushAll();
+    }
 
     @Test
     public void addHitsTest() throws Exception {

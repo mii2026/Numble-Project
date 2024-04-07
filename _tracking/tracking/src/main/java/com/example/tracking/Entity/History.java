@@ -13,13 +13,15 @@ import java.time.LocalDate;
 public class History {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long historyId;
+    private LocalDate date;
+    private Long hit;
+
+
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "url_id")
     private Daily daily;
-    private LocalDate date;
-    private Integer hit;
 
     @Builder
-    public History(Daily daily, LocalDate date, Integer hit){
+    public History(Daily daily, LocalDate date, Long hit){
         this.daily = daily;
         this.date = date;
         this.hit = hit;

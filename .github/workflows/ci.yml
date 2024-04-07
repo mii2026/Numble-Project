@@ -31,11 +31,16 @@ jobs:
       run: touch ./_tracking/tracking/src/test/resources/application.properties
     - name: get test application.properties values
       run: echo "${{ secrets.APPLICATION_TEST }}" > ./_tracking/tracking/src/test/resources/application.properties
+
+    - name: Start Redis
+      uses: supercharge/redis-github-action@1.7.0
+      with:
+        redis-password: ${{ secrets.REDIS_PW }}
     
     - uses: mirromutth/mysql-action@v1.1
       with:
-        mysql database: 'tracking_test'
-        mysql root password: 'test'
+        mysql database: 'tracking'
+        mysql root password: ${{ secrets.MYSQL_PW }}
 
     - name: Gradle Permission
       run: chmod +x ./_tracking/tracking/gradlew

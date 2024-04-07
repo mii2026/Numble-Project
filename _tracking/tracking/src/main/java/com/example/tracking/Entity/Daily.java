@@ -13,16 +13,12 @@ public class Daily {
     private Integer urlId;
     @Column(unique = true)
     private String url;
-    private Integer todayHit;
-    private Long totalHit;
 
     @OneToMany(mappedBy = "daily", fetch = FetchType.LAZY)
     private List<History> history = new ArrayList<>();
 
     @Builder
-    public Daily(String url, Integer todayHit, Long totalHit){
+    public Daily(String url){
         this.url = url;
-        this.todayHit = todayHit;
-        this.totalHit = totalHit;
     }
 }
