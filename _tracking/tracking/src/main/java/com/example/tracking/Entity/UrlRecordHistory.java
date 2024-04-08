@@ -10,19 +10,18 @@ import java.time.LocalDate;
 
 @Entity @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class History {
+public class UrlRecordHistory {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long historyId;
     private LocalDate date;
     private Long hit;
 
-
     @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "url_id")
-    private Daily daily;
+    private UrlRecord urlRecord;
 
     @Builder
-    public History(Daily daily, LocalDate date, Long hit){
-        this.daily = daily;
+    public UrlRecordHistory(UrlRecord urlRecord, LocalDate date, Long hit){
+        this.urlRecord = urlRecord;
         this.date = date;
         this.hit = hit;
     }

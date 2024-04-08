@@ -1,5 +1,4 @@
 package com.example.tracking.DTO;
-import com.example.tracking.Entity.Daily;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;

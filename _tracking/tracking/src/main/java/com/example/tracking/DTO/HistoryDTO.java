@@ -1,10 +1,7 @@
 package com.example.tracking.DTO;
 
-import com.example.tracking.Entity.Daily;
-import com.example.tracking.Entity.History;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
+import com.example.tracking.Entity.UrlRecordHistory;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -14,16 +11,22 @@ import java.util.List;
 public class HistoryDTO {
     private HistoryData[] historyData = new HistoryData[7];
 
+    @Getter @Setter @AllArgsConstructor
+    private class HistoryData{
+        private LocalDate date;
+        private Long hit;
+    }
+
     @Builder
-    public HistoryDTO(Long todayHit, List<History> historyList){
+    public HistoryDTO(Long todayHit, List<UrlRecordHistory> urlRecordHistories){
         LocalDate today = LocalDate.now();
         this.historyData[0] = new HistoryData(today, todayHit);
 
-        Collections.sort(historyList, (x,y)->y.getDate().compareTo(x.getDate()));
+        Collections.sort(urlRecordHistories, (x,y)->y.getDate().compareTo(x.getDate()));
         for(int i = 1; i <= 6; i++){
             Long hit = 0L;
-            if(historyList.size()>=i)
-                hit = historyList.get(i-1).getHit();
+            if(urlRecordHistories.size()>=i)
+                hit = urlRecordHistories.get(i-1).getHit();
             this.historyData[i] = new HistoryData(today.minusDays(i), hit);
         }
     }
@@ -33,13 +36,3 @@ public class HistoryDTO {
     }
 }
 
-@Data @Getter
-class HistoryData{
-    private LocalDate date;
-    private Long hit;
-
-    public HistoryData(LocalDate date, Long hit){
-        this.date = date;
-        this.hit = hit;
-    }
-}

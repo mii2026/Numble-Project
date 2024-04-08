@@ -2,13 +2,14 @@ package com.example.tracking.Service;
 
 import com.example.tracking.DTO.HistoryDTO;
 import com.example.tracking.DTO.HitsDTO;
-import com.example.tracking.Entity.Daily;
-import com.example.tracking.Entity.History;
-import com.example.tracking.Repository.DailyRepository;
-import com.example.tracking.Repository.HistoryBulkRepository;
+import com.example.tracking.Entity.UrlRecord;
+import com.example.tracking.Entity.UrlRecordHistory;
+import com.example.tracking.Repository.UrlRecordBulkRepository;
+import com.example.tracking.Repository.UrlRecordHistoryRepository;
+import com.example.tracking.Repository.UrlRecordRepository;
+import com.example.tracking.Repository.UrlRecordHistoryBulkRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -16,74 +17,66 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.*;
 
-@Service @RequiredArgsConstructor @Slf4j
+@Service @RequiredArgsConstructor
 public class TrackingService {
-    private final DailyRepository dailyRepository;
-    private final HistoryBulkRepository historyBulkRepository;
+    private final UrlRecordRepository urlRecordRepository;
+    private final UrlRecordHistoryRepository urlRecordHistoryRepository;
+    private final UrlRecordBulkRepository urlRecordBulkRepository;
+    private final UrlRecordHistoryBulkRepository urlRecordHistoryBulkRepository;
     private final StringRedisTemplate redisTemplate;
 
+    @Transactional
     public void addHits(String url){
         redisTemplate.opsForValue().increment("url:"+url+":todayHit");
-        Long totalHit = redisTemplate.opsForValue().increment("url:"+url+":totalHit");
-        if(totalHit == 1L){
-            dailyRepository.save(new Daily(url));
-        }
+        if(redisTemplate.opsForSet().add("urlList", url)==1)
+            urlRecordRepository.save(new UrlRecord(url, 0L));
     }
 
     public HitsDTO getHits(String url){
+        Long todayHit = Long.valueOf(
+                Optional.ofNullable(redisTemplate.opsForValue().get("url:"+url+":todayHit")).orElse("0")
+        );
 
-        String todayHit = redisTemplate.opsForValue().get("url:"+url+":todayHit");
-        String totalHit = redisTemplate.opsForValue().get("url:"+url+":totalHit");
+        Long totalHit = urlRecordRepository.findByUrl(url).orElse(new UrlRecord(url, 0L)).getTotalHit();
 
         return HitsDTO.builder()
-                .todayHit(todayHit == null ? 0L : Long.valueOf(todayHit))
-                .totalHit(totalHit == null ? 0L : Long.valueOf(totalHit))
+                .todayHit(todayHit)
+                .totalHit(totalHit + todayHit)
                 .build();
     }
 
     public HistoryDTO getHistory(String url){
+        Long todayHit = Long.valueOf(
+                Optional.ofNullable(redisTemplate.opsForValue().get("url:"+url+":todayHit")).orElse("0")
+        );
 
-        String todayHit = redisTemplate.opsForValue().get("url:"+url+":todayHit");
-        Optional<Daily> daily = dailyRepository.findByUrlWithHistory(url);
+        List<UrlRecordHistory> urlRecordHistories = urlRecordHistoryRepository.
+                findUrlRecordHistories(url, LocalDate.now().minusDays(6), LocalDate.now().minusDays(1));
 
         return HistoryDTO.builder()
-                .todayHit(todayHit==null ? 0L : Long.valueOf(todayHit))
-                .historyList(daily.isEmpty() ? new ArrayList<History>() : daily.get().getHistory())
+                .todayHit(todayHit)
+                .urlRecordHistories(urlRecordHistories)
                 .build();
     }
 
     @Transactional
     public void updateTodayHitsToHistroy(){
-        for(int i = 0; i < 100; i++) {
-            List<Daily> dailyList = this.dailyRepository.findAllBy(PageRequest.of(i, 10000));
-
-            if(dailyList.size()==0)
-                break;
-
-            List<String> keys = new ArrayList<>();
-            Map<String, String> todayHitUpdateList = new HashMap<>();
-            for(Daily d: dailyList){
-                keys.add("url:"+d.getUrl()+":todayHit");
-                todayHitUpdateList.put("url:"+d.getUrl()+":todayHit", "0");
-            }
-            List<String> values = redisTemplate.opsForValue().multiGet(keys);
-
-            List<History> historyList = new ArrayList<>();
-            for (int j = 0; j < dailyList.size(); j++) {
-                String todayHit = values.get(j)==null ? "0" : values.get(i);
-                historyList.add(
-                        new History(
-                                dailyList.get(i),
-                                LocalDate.now().minusDays(1),
-                                Long.valueOf(todayHit)
-                        )
+        int pageSize = 10000;
+        LocalDate today = LocalDate.now().minusDays(1);
+        long urlLength = urlRecordRepository.count();
+        for(int i = 0; i < urlLength/pageSize+1; i++) {
+            List<UrlRecord> urlRecords = urlRecordRepository.findAllBy(PageRequest.of(i, pageSize));
+            List<UrlRecordHistory> urlRecordHistories = new ArrayList<>();
+            for (UrlRecord urlRecord: urlRecords) {
+                Long todayHit = Long.valueOf(
+                        Optional.ofNullable(redisTemplate.opsForValue().getAndDelete("url:"+urlRecord.getUrl()+":todayHit"))
+                                .orElse("0")
                 );
+                urlRecord.increaseTotalHit(todayHit);
+                urlRecordHistories.add(new UrlRecordHistory(urlRecord, today, todayHit));
             }
-
-            this.historyBulkRepository.saveAll(historyList);
-            redisTemplate.opsForValue().multiSet(todayHitUpdateList);
+            urlRecordBulkRepository.updateAll(urlRecords);
+            urlRecordHistoryBulkRepository.saveAll(urlRecordHistories);
         }
-        if(this.dailyRepository.findAllBy(PageRequest.of(100, 10000)).size()!=0)
-            log.warn("Warning at updateTodayHitsToHistroy():Increase limit of page!");
     }
 }
